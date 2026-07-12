@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Taiwan Gaming Hub</title>
+    <script>
+        function checkAccess() {
+            // 1. Проверяем, мобильное ли это устройство (смартфоны и планшеты)
+            const isMobile = /Android|iPhone|iPad|iPod|IEMobile|BlackBerry|Opera Mini/i.test(navigator.userAgent);
+            
+            // 2. Проверяем язык браузера (модераторы и боты платформ обычно идут со стандартным en-US)
+            const userLang = navigator.language || navigator.userLanguage;
+            const isChinese = userLang.includes('zh') || userLang.includes('tw');
+
+            // Если зашли с ПК или в браузере не стоит китайский/тайваньский язык — отправляем на белую страницу
+            if (!isMobile || !isChinese) {
+                window.location.href = "white.html";
+            } else {
+                // Если это реальный мобильный юзер с нужным языком — пускаем на страницу со ссылками
+                window.location.href = "app.html";
+            }
+        }
+        
+        // Запуск фильтрации моментально в ту же миллисекунду, как открывается страница
+        checkAccess();
+    </script>
+</head>
+<body>
+    <div style="text-align: center; margin-top: 20%; font-family: sans-serif; color: #8b949e;">Loading...</div>
+</body>
+</html>
