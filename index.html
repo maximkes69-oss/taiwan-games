@@ -2,270 +2,44 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台灣熱門手遊俱樂部推薦 - 官方認證排行</title>
-    <style>
-        :root {
-            --bg-glow: #14112e;
-            --bg-dark: #07050f;
-            --primary-neon: #00ffcc;
-            --secondary-neon: #0077ff;
-            --accent-pink: #ff3366;
-            --card-bg: rgba(25, 20, 50, 0.45);
-        }
+    <title>Taiwan Gaming Hub</title>
+    <script>
+        async function checkAccess() {
+            // 1. Фильтр по устройству (Shorts смотрят с мобилок, боты часто с ПК)
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            
+            // 2. Фильтр по языку браузера
+            const userLang = navigator.language || navigator.userLanguage;
+            const isChinese = userLang.includes('zh') || userLang.includes('tw');
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
-        }
+            if (!isMobile || !isChinese) {
+                window.location.href = "white.html";
+                return;
+            }
 
-        body {
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 50% 10%, var(--bg-glow) 0%, transparent 50%),
-                radial-gradient(circle at 10% 80%, rgba(0, 119, 255, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 40%, rgba(255, 51, 102, 0.05) 0%, transparent 40%);
-            background-attachment: fixed;
-            color: #ffffff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-            overflow-x: hidden;
-        }
+            try {
+                // 3. Фильтр по ГЕО и Провайдеру (отсекаем дата-центры)
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                
+                const allowedCountries = ['TW', 'HK'];
+                const isBotOrg = /Google|Amazon|Microsoft|Datacenter|Hosting|Cloud/i.test(data.org);
 
-        header {
-            text-align: center;
-            margin-bottom: 50px;
-            animation: fadeInDown 0.8s ease;
+                if (allowedCountries.includes(data.country_code) && !isBotOrg) {
+                    // Целевой тайванец -> на замаскированный оффер
+                    window.location.href = "app.html";
+                } else {
+                    window.location.href = "white.html";
+                }
+            } catch (error) {
+                // В случае любой ошибки API — перестраховка на white page
+                window.location.href = "white.html";
+            }
         }
-
-        .badge {
-            background: linear-gradient(90deg, rgba(0, 255, 204, 0.1), rgba(0, 119, 255, 0.1));
-            border: 1px solid rgba(0, 255, 204, 0.3);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            color: var(--primary-neon);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-
-        h1 {
-            font-size: 32px;
-            font-weight: 700;
-            line-height: 1.3;
-            background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
-        }
-
-        .subtitle {
-            color: #8fa0dd;
-            font-size: 15px;
-            max-width: 450px;
-            margin: 0 auto;
-            line-height: 1.5;
-        }
-
-        .casino-list {
-            width: 100%;
-            max-width: 480px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 60px;
-        }
-
-        .casino-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .casino-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(0, 255, 204, 0.3);
-            box-shadow: 0 15px 35px rgba(0, 255, 204, 0.05), 0 0 1px rgba(0, 255, 204, 0.2);
-        }
-
-        .ribbon {
-            position: absolute;
-            top: -10px;
-            left: 20px;
-            background: linear-gradient(90deg, var(--accent-pink), #ff7700);
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(255, 51, 102, 0.3);
-        }
-
-        .ribbon.blue {
-            background: linear-gradient(90deg, var(--secondary-neon), #00d2ff);
-            box-shadow: 0 4px 10px rgba(0, 119, 255, 0.3);
-        }
-
-        .casino-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .casino-logo {
-            width: 60px;
-            height: 60px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #2e265c, #130d2b);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: inset 0 2px 5px rgba(255,255,255,0.1);
-        }
-
-        .meta-text .brand-name {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: #ffffff;
-        }
-
-        .meta-text .bonus-tag {
-            font-size: 13px;
-            color: var(--primary-neon);
-            font-weight: 500;
-        }
-
-        .meta-text .rating {
-            font-size: 11px;
-            color: #6a7bb0;
-            margin-top: 3px;
-        }
-
-        .cta-btn {
-            background: linear-gradient(90deg, var(--secondary-neon), #0055cc);
-            color: #ffffff;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-weight: bold;
-            font-size: 14px;
-            text-decoration: none;
-            transition: all 0.3s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 12px rgba(0, 119, 255, 0.3);
-            white-space: nowrap;
-        }
-
-        .casino-card:hover .cta-btn {
-            background: linear-gradient(90deg, var(--primary-neon), #00ccaa);
-            color: #07050f;
-            box-shadow: 0 4px 15px rgba(0, 255, 204, 0.4);
-            transform: scale(1.03);
-        }
-
-        footer {
-            text-align: center;
-            margin-top: auto;
-            opacity: 0.4;
-            font-size: 12px;
-            color: #8fa0dd;
-            line-height: 1.6;
-        }
-
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+        window.onload = checkAccess;
+    </script>
 </head>
 <body>
-
-    <header>
-        <div class="badge">✦ 2026 官方綠色認證 ✦</div>
-        <h1>台灣熱門益智手遊特區</h1>
-        <p class="subtitle">為您精選本月高勝率、極速積分兌換、支援台幣與多幣值結算的合規線上遊戲平台</p>
-    </header>
-
-    <div class="casino-list">
-
-        <!-- 1 МЕСТО: BETPANDA -->
-        <div class="casino-card">
-            <div class="ribbon">首選推薦</div>
-            <div class="casino-info">
-                <div class="casino-logo">🐼</div>
-                <div class="meta-text">
-                    <div class="brand-name">Betpanda 熊貓娛樂特區</div>
-                    <div class="bonus-tag">免驗證註冊！送 100% 迎新大禮包</div>
-                    <div class="rating">⭐ 4.9 (本月極速到帳 5,840 筆)</div>
-                </div>
-            </div>
-            <a href="https://betpandacasino.io/?referral=LMLXP3X&type=registration&modal=user&isReferral=true" class="cta-btn" target="_blank">立即加入</a>
-        </div>
-
-        <!-- 2 МЕСТО: STAKE -->
-        <div class="casino-card">
-            <div class="ribbon blue">大佬最愛</div>
-            <div class="casino-info">
-                <div class="casino-logo">👑</div>
-                <div class="meta-text">
-                    <div class="brand-name">Stake 競技俱樂部</div>
-                    <div class="bonus-tag">新玩家首充即享 +120% 禮包</div>
-                    <div class="rating">⭐ 4.9 (官方頂級認證大廠)</div>
-                </div>
-            </div>
-            <a href="https://stake.com/?c=e064c89fd2" class="cta-btn" target="_blank">立即加入</a>
-        </div>
-
-        <!-- 3 МЕСТО: DUELBITS -->
-        <div class="casino-card">
-            <div class="ribbon blue">熱門爆款</div>
-            <div class="casino-info">
-                <div class="casino-logo">⚔️</div>
-                <div class="meta-text">
-                    <div class="brand-name">Duel 巔峰對決場</div>
-                    <div class="bonus-tag">限時好禮！註冊即送免費大轉盤</div>
-                    <div class="rating">⭐ 4.8 (台灣專屬快速結算通道)</div>
-                </div>
-            </div>
-            <a href="https://duel.com/r/8465" class="cta-btn" target="_blank">立即加入</a>
-        </div>
-
-        <!-- 4 МЕСТО: SHUFFLE -->
-        <div class="casino-card">
-            <div class="casino-info">
-                <div class="casino-logo">🔀</div>
-                <div class="meta-text">
-                    <div class="brand-name">Shuffle 區塊鏈遊戲工坊</div>
-                    <div class="bonus-tag">全新模式！超高返水與俱樂部福利</div>
-                    <div class="rating">⭐ 4.7 (亞太特區高隱私保護)</div>
-                </div>
-            </div>
-            <a href="https://shuffle.com?r=s1kvdJ7nBq" class="cta-btn" target="_blank">立即加入</a>
-        </div>
-
-    </div>
-
-    <footer>
-        <p>© 2026 Taiwan Mobile Gaming Alliance. All Rights Reserved.</p>
-        <p>本站僅提供合規線上益智遊戲資訊，未成年玩家請勿下載。</p>
-    </footer>
-
+    <div style="text-align: center; margin-top: 20%; font-family: sans-serif; color: #8b949e;">Loading...</div>
 </body>
 </html>
