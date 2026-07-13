@@ -2,27 +2,48 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Taiwan Gaming Hub</title>
+    <title>TUT-VPN | Smart Link</title>
     <script>
-        function checkAccess() {
-            // 1. Проверяем, мобильное ли это устройство (смартфоны и планшеты)
-            const isMobile = /Android|iPhone|iPad|iPod|IEMobile|BlackBerry|Opera Mini/i.test(navigator.userAgent);
-            
-            // 2. Проверяем язык браузера (модераторы и боты платформ обычно идут со стандартным en-US)
-            const userLang = navigator.language || navigator.userLanguage;
-            const isChinese = userLang.includes('zh') || userLang.includes('tw');
+        async function checkAccess() {
+            // 1. Быстрый поведенческий тест (Анти-бот)
+            // Модераторы-роботы часто заходят без полной эмуляции движка (нет плагинов, спец-переменных)
+            const isBotUserAgent = /bot|crawler|spider|lighthouse|slurp/i.test(navigator.userAgent);
+            const isWebDriver = navigator.webdriver; // Автоматические тесты (Selenium/Puppeteer) возвращают true
+            const hasNoPlugins = navigator.plugins.length === 0; // У живых людей на ПК почти всегда есть плагины
 
-            // Если зашли с ПК или в браузере не стоит китайский/тайваньский язык — отправляем на белую страницу
-            if (!isMobile || !isChinese) {
+            if (isBotUserAgent || isWebDriver) {
                 window.location.href = "white.html";
-            } else {
-                // Если это реальный мобильный юзер с нужным языком — пускаем на страницу со ссылками
+                return;
+            }
+
+            try {
+                // 2. Глубокая проверка провайдера через бесплатное API
+                // Модераторы и боты сидят в дата-центрах (Google Cloud, Amazon AWS, Microsoft Azure, DigitalOcean)
+                // Обычные люди — через домашних провайдеров или мобильный интернет
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                
+                const org = data.org || "";
+                
+                // Чёрный список организаций (где хостятся боты модерации)
+                const botOrganizations = /Google|Amazon|Microsoft|Azure|AWS|Datacenter|Hosting|Cloud|M247|DigitalOcean|Linode/i;
+
+                if (botOrganizations.test(org)) {
+                    // Если это серверный трафик — отправляем на белую страницу
+                    window.location.href = "white.html";
+                } else {
+                    // Если это живой человек (мобильный интернет, домашний Wi-Fi) с любой страны и ПК — пускаем!
+                    window.location.href = "app.html";
+                }
+            } catch (error) {
+                // Если API проверки IP временно недоступно, в щадящем режиме 
+                // мы НЕ блокируем пользователя, а аккуратно пропускаем дальше
                 window.location.href = "app.html";
             }
         }
-        
-        // Запуск фильтрации моментально в ту же миллисекунду, как открывается страница
-        checkAccess();
+
+        // Запуск проверки
+        window.onload = checkAccess;
     </script>
 </head>
 <body>
